@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'main.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,11 +8,15 @@ import 'package:http/http.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class SignupPage extends StatefulWidget {
+  String url;
+  SignupPage(this.url);
   @override
-  _SignupPageState createState() => _SignupPageState();
+  _SignupPageState createState() => _SignupPageState(url);
 }
 
 class _SignupPageState extends State<SignupPage> {
+  String url;
+  _SignupPageState(this.url);
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _pswd = TextEditingController();
@@ -35,10 +40,6 @@ class _SignupPageState extends State<SignupPage> {
 
   bool _loader = false;
 
-  void _tester() {
-    print("Thats it");
-  }
-
   void _runMe() async {
     setState(() {
       _loader = true;
@@ -57,7 +58,7 @@ class _SignupPageState extends State<SignupPage> {
         '"Phone": "$phno"'
         '}';
 
-    Response response = await post("http://10.0.2.2:5000/register",
+    Response response = await post(url+"/register",
         headers: headers, body: json);
     setState(() {
       _loader = false;

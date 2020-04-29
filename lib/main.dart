@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,21 +12,24 @@ import 'package:toast/toast.dart';
 void main() => runApp(new MyApp());
 
 class MyApp extends StatelessWidget {
+  final String url = "http://10.0.2.2:5000";
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
       debugShowCheckedModeBanner: false,
       routes: <String, WidgetBuilder>{
-        '/signup': (BuildContext context) => new SignupPage()
+        '/signup': (BuildContext context) => new SignupPage(url)
       },
-      home: new MyHomePage(),
+      home: new MyHomePage(url),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
+  final String url;
+  MyHomePage(this.url);
   @override
-  _MyHomePageState createState() => new _MyHomePageState();
+  _MyHomePageState createState() => new _MyHomePageState(url);
 }
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -35,7 +37,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final _pswd = TextEditingController();
   String errorText = "";
   int retries = 0;
-
+  String url;
+  _MyHomePageState(this.url);
 
   final borderDecoration = InputDecoration(
       labelStyle: TextStyle(
@@ -60,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
         '"Email" : "$Email",'
         '"Password" : "$Password"'
     '}';
-    Response response = await post("http://10.0.2.2:5000/login",
+    Response response = await post(url + "/login",
         headers: headers, body: json).timeout(const Duration(seconds: 3)).catchError( (error) => _onTimeout(error) );
     var data = jsonDecode(response.body);
     bool reqResponse = data['success'];
@@ -131,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _getSession() async {
 
-    Response response = await get('http://10.0.2.2:5000/getsession').timeout(const Duration(seconds: 3)).then((data) => _onRecieve(data)).catchError( (error) => _onTimeout(error) );
+    Response response = await get(url + '/getsession').timeout(const Duration(seconds: 3)).then((data) => _onRecieve(data)).catchError( (error) => _onTimeout(error) );
 
     //Session Retrival
   }
