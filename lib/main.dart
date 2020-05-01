@@ -111,14 +111,23 @@ class _MyHomePageState extends State<MyHomePage> {
     retries++;
     if (error is TimeoutException)
       {
-        if (retries > 2)
-        {
-          SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+        if (retries < 3) {
+          Toast.show(
+              "Unable to connect to server. Trying again...", context, duration: 4,
+              gravity: Toast.BOTTOM);
+          Future.delayed(const Duration(seconds: 5), () {
+            _getSession();
+          });
         }
-        Toast.show("Unable to connect to server. Try again.", context, duration: 4, gravity:  Toast.BOTTOM);
-        Future.delayed(const Duration(seconds: 10), () {
-          _getSession();
-        });
+        else
+          {
+            Toast.show(
+                "Failed to connect to server", context, duration: 4,
+                gravity: Toast.BOTTOM);
+            setState(() {
+              _loading = false;
+            });
+          }
       }
     else
       {
