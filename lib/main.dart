@@ -55,61 +55,63 @@ class _MyHomePageState extends State<MyHomePage> {
     String Email = _email.text;
     String Password = _pswd.text;
     String deviceToken = "";
-    update (String token)
+    update (String token) async
     {
       deviceToken = token;
+      Map<String, String> headers = {"Content-type": "application/json"};
+      String json ='{'
+          '"Email" : "$Email",'
+          '"Password" : "$Password",'
+          '"Token" : "$deviceToken"'
+          '}';
+      Response response = await post(this.URL + "/login",
+          headers: headers, body: json).timeout(const Duration(seconds: 3)).catchError( (error) => _onTimeout(error) );
+      var data = jsonDecode(response.body);
+      bool reqResponse = data['success'];
+      String errorInfo = data['error_info'];
+      if (reqResponse) {
+
+        setState(() {
+          errorText = "";
+        });
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Dashboard(data: data)
+        ));
+      }
+      else
+      {
+        if (errorInfo == "Incorrect password")
+        {
+          setState(() {
+
+            errorText = "Incorrect Password";
+            pswdRedUnderLine = true;
+            emailRedUnderLine = false;
+          });
+        }
+        else if (errorInfo == "User does not exist")
+        {
+          setState(() {
+            errorText = "The user with this email does not exsist";
+            emailRedUnderLine = true;
+            pswdRedUnderLine = false;
+          });
+        }
+        else
+        {
+          setState(() {
+            errorText = "Something went wrong. Try loggin in again";
+            emailRedUnderLine = false;
+            pswdRedUnderLine = false;
+          });
+        }
+      }
     }
     FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
     firebaseMessaging.getToken().then((token){
       update(token);
     });
-    Map<String, String> headers = {"Content-type": "application/json"};
-    String json ='{'
-        '"Email" : "$Email",'
-        '"Password" : "$Password",'
-        '"Token" : "$deviceToken"'
-    '}';
-    Response response = await post(this.URL + "/login",
-        headers: headers, body: json).timeout(const Duration(seconds: 3)).catchError( (error) => _onTimeout(error) );
-    var data = jsonDecode(response.body);
-    bool reqResponse = data['success'];
-    String errorInfo = data['error_info'];
-    if (reqResponse) {
+    print(deviceToken);
 
-      setState(() {
-        errorText = "";
-      });
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Dashboard(data: data)
-      ));
-    }
-    else
-      {
-        if (errorInfo == "Incorrect password")
-          {
-            setState(() {
-
-              errorText = "Incorrect Password";
-              pswdRedUnderLine = true;
-              emailRedUnderLine = false;
-            });
-          }
-        else if (errorInfo == "User does not exist")
-          {
-            setState(() {
-              errorText = "The user with this email does not exsist";
-              emailRedUnderLine = true;
-              pswdRedUnderLine = false;
-            });
-          }
-        else
-          {
-            setState(() {
-              errorText = "Something went wrong. Try loggin in again";
-              emailRedUnderLine = false;
-              pswdRedUnderLine = false;
-            });
-          }
-      }
   }
 
   void _onTimeout(error) {
