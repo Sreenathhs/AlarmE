@@ -1,26 +1,24 @@
 import 'dart:async';
 import 'dart:convert';
-import 'main.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class SignupPage extends StatefulWidget {
-  String url;
-  SignupPage(this.url);
   @override
-  _SignupPageState createState() => _SignupPageState(url);
+  _SignupPageState createState() => _SignupPageState();
 }
 
 class _SignupPageState extends State<SignupPage> {
-  String url;
-  _SignupPageState(this.url);
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _pswd = TextEditingController();
   final _phno = TextEditingController();
+  final DBRef = FirebaseDatabase.instance.reference();
+  String URL = "";
 
   final borderDecoration = InputDecoration(
     labelStyle: TextStyle(
@@ -40,6 +38,10 @@ class _SignupPageState extends State<SignupPage> {
 
   bool _loader = false;
 
+  void _tester() {
+    print("Thats it");
+  }
+
   void _runMe() async {
     setState(() {
       _loader = true;
@@ -58,7 +60,10 @@ class _SignupPageState extends State<SignupPage> {
         '"Phone": "$phno"'
         '}';
 
-    Response response = await post(url+"/register",
+    DBRef.child("url").once().then((DataSnapshot snapshot){
+      URL = snapshot.value['link'];
+    });
+    Response response = await post(URL + "/register",
         headers: headers, body: json);
     setState(() {
       _loader = false;
@@ -293,27 +298,6 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                     ],
                   )),
-              // SizedBox(height: 15.0),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.center,
-              //   children: <Widget>[
-              //     Text(
-              //       'New to Spotify?',
-              //       style: TextStyle(
-              //         fontFamily: 'Montserrat',
-              //       ),
-              //     ),
-              //     SizedBox(width: 5.0),
-              //     InkWell(
-              //       child: Text('Register',
-              //           style: TextStyle(
-              //               color: Colors.green,
-              //               fontFamily: 'Montserrat',
-              //               fontWeight: FontWeight.bold,
-              //               decoration: TextDecoration.underline)),
-              //     )
-              //   ],
-              // )
             ]));
   }
 }

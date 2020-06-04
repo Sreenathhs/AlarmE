@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/first_screen.dart';
 import 'screens/second_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 // ignore: must_be_immutable
 class Dashboard extends StatefulWidget {
@@ -38,6 +39,46 @@ class AppClock extends StatefulWidget {
 class _AppClockState extends State<AppClock> {
   var data;
   _AppClockState(this.data);
+  String textValue = "";
+  FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
+
+  @override
+  void initState() {
+    firebaseMessaging.configure(
+        onLaunch: (Map<String, dynamic> msg){
+          print("onLaunch");
+          return null;
+        },
+        onResume: (Map<String, dynamic> msg){
+          print("onResume");
+          return null;
+        },
+        onMessage: (Map<String, dynamic> msg){
+          print("onMessage");
+          return null;
+        }
+    );
+    firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(
+            sound: true,
+            alert: true,
+            badge: true
+        )
+    );
+    firebaseMessaging.onIosSettingsRegistered.listen((IosNotificationSettings settings){
+      print('IoS Settings registered');
+    });
+    firebaseMessaging.getToken().then((token){
+      update(token);
+    });
+  }
+  update (String token) {
+    print(token);
+    textValue = token;
+    setState(() {
+
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -110,7 +151,7 @@ class _AppClockState extends State<AppClock> {
                           ),
                         ),
                         Divider(),
-                        Text('same')
+                        Text(textValue)
                       ],
                     ),
                   ],

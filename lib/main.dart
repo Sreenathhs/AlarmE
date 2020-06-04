@@ -1,44 +1,42 @@
 import 'dart:async';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'signup.dart';
 import 'dashboard.dart';
 import 'package:http/http.dart';
 import 'package:toast/toast.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 void main() => runApp(new MyApp());
 
 class MyApp extends StatelessWidget {
-  final String url = "http://10.0.2.2:5000";
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
       debugShowCheckedModeBanner: false,
       routes: <String, WidgetBuilder>{
-        '/signup': (BuildContext context) => new SignupPage(url)
+        '/signup': (BuildContext context) => new SignupPage()
       },
-      home: new MyHomePage(url),
+      home: new MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  final String url;
-  MyHomePage(this.url);
   @override
-  _MyHomePageState createState() => new _MyHomePageState(url);
+  _MyHomePageState createState() => new _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final DBRef = FirebaseDatabase.instance.reference();
   final _email = TextEditingController();
   final _pswd = TextEditingController();
+  String URL = "";
   String errorText = "";
   int retries = 0;
-  String url;
-  _MyHomePageState(this.url);
 
   final borderDecoration = InputDecoration(
       labelStyle: TextStyle(
@@ -54,16 +52,24 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
   void _login() async {
-
     String Email = _email.text;
     String Password = _pswd.text;
-
+    String deviceToken = "";
+    update (String token)
+    {
+      deviceToken = token;
+    }
+    FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
+    firebaseMessaging.getToken().then((token){
+      update(token);
+    });
     Map<String, String> headers = {"Content-type": "application/json"};
     String json ='{'
         '"Email" : "$Email",'
-        '"Password" : "$Password"'
+        '"Password" : "$Password",'
+        '"Token" : "$deviceToken"'
     '}';
-    Response response = await post(url + "/login",
+    Response response = await post(this.URL + "/login",
         headers: headers, body: json).timeout(const Duration(seconds: 3)).catchError( (error) => _onTimeout(error) );
     var data = jsonDecode(response.body);
     bool reqResponse = data['success'];
@@ -73,7 +79,6 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         errorText = "";
       });
-      String value = "Test Subject";
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Dashboard(data: data)
       ));
     }
@@ -111,27 +116,28 @@ class _MyHomePageState extends State<MyHomePage> {
     retries++;
     if (error is TimeoutException)
       {
-        if (retries < 3) {
+        if (retries > 2)
+        {
+          Toast.show("Application could not connect to the internet.", context, duration: 4, gravity:  Toast.BOTTOM);
+          setState(() {
+            _loading = false;
+          });
+        }
+        else {
           Toast.show(
               "Unable to connect to server. Trying again...", context, duration: 4,
               gravity: Toast.BOTTOM);
-          Future.delayed(const Duration(seconds: 5), () {
+          Future.delayed(const Duration(seconds: 10), () {
             _getSession();
           });
         }
-        else
-          {
-            Toast.show(
-                "Failed to connect to server", context, duration: 4,
-                gravity: Toast.BOTTOM);
-            setState(() {
-              _loading = false;
-            });
-          }
       }
     else
       {
         Toast.show("Something went wrong. Please restart application " + error.toString(), context, duration: 4, gravity: Toast.BOTTOM);
+        setState(() {
+          _loading = false;
+        });
       }
   }
 
@@ -143,7 +149,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _getSession() async {
 
-    Response response = await get(url + '/getsession').timeout(const Duration(seconds: 3)).then((data) => _onRecieve(data)).catchError( (error) => _onTimeout(error) );
+    print(this.URL + '/getsession');
+    Response response = await get(this.URL + '/getsession').timeout(const Duration(seconds: 3)).then((data) => _onRecieve(data)).catchError( (error) => _onTimeout(error) );
 
     //Session Retrival
   }
@@ -151,8 +158,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    print("GOING TO SESSION");
-    _getSession();
+    DBRef.child("url").once().then((DataSnapshot snapshot){
+      this.URL = snapshot.value['link'];
+      print(this.URL);
+      print("GOING TO SESSION");
+      _getSession();
+    });
   }
 
 
