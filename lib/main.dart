@@ -69,6 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
       var data = jsonDecode(response.body);
       bool reqResponse = data['success'];
       String errorInfo = data['error_info'];
+      data['server'] = URL;
       if (reqResponse) {
 
         setState(() {
