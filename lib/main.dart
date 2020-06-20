@@ -50,6 +50,14 @@ class _MyHomePageState extends State<MyHomePage> {
   bool pswdRedUnderLine = false;
   bool _loading = true;
 
+  String returnDeviceToken() {
+    FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
+    String deviceToken = "";
+    firebaseMessaging.getToken().then((token){
+      deviceToken = token;
+    });
+    return deviceToken;
+  }
 
   void _login() async {
     String Email = _email.text;
@@ -107,12 +115,9 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
     }
-    FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
-    firebaseMessaging.getToken().then((token){
-      update(token);
-    });
+    deviceToken = returnDeviceToken();
     print(deviceToken);
-
+    update(deviceToken);
   }
 
   void _onTimeout(error) {
@@ -130,7 +135,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Toast.show(
               "Unable to connect to server. Trying again...", context, duration: 4,
               gravity: Toast.BOTTOM);
-          Future.delayed(const Duration(seconds: 10), () {
+          Future.delayed(const Duration(seconds: 4), () {
             _getSession();
           });
         }
@@ -153,9 +158,30 @@ class _MyHomePageState extends State<MyHomePage> {
   void _getSession() async {
 
     print(this.URL + '/getsession');
-    Response response = await get(this.URL + '/getsession').timeout(const Duration(seconds: 3)).then((data) => _onRecieve(data)).catchError( (error) => _onTimeout(error) );
-
-    //Session Retrival
+    String deviceToken = returnDeviceToken();
+    Map<String, String> headers = {"Content-type": "application/json"};
+    String json ='{'
+        '"Token" : "$deviceToken"'
+        '}';
+    Response response = await post(this.URL + "/getsession",
+        headers: headers, body: json).timeout(const Duration(seconds: 3)).catchError( (error) => _onTimeout(error) );
+    var data = jsonDecode(response.body);
+    bool reqRespone = data['success'];
+    data['server'] = URL;
+    if (reqRespone)
+      {
+        setState(() {
+          _loading = false;
+        });
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Dashboard(data: data)));
+      }
+    else
+      {
+        print("Ok couldn't find the device");
+        setState(() {
+          _loading = false;
+        });
+      }
   }
 
   @override

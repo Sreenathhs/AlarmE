@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart';
 import 'package:toast/toast.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'main.dart';
 
 // ignore: must_be_immutable
 class Dashboard extends StatefulWidget {
@@ -93,7 +94,6 @@ class _AppClockState extends State<AppClock> {
     Response response = await post(URL + '/logout',headers: headers, body: json).timeout(const Duration(seconds: 3)).catchError( (error) => (error) {Toast.show("Application could not connect to the internet. Quitting without logout", context, duration: 4, gravity:  Toast.BOTTOM);setState(() {
       _loading = true;
     }); } );
-    SystemNavigator.pop();
   }
 
   Future<bool> _confirmation() {
@@ -106,9 +106,11 @@ class _AppClockState extends State<AppClock> {
               actions: <Widget>[
                 FlatButton(
                   child: Text('Yes'),
-                  onPressed: (){
+                  onPressed: () async{
                     print("GOING IN");
-                    _removeDeviceId();
+                    await _removeDeviceId();
+                    Navigator.of(context).pop(false);
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp()));
                   },
                 ),
                 FlatButton(
