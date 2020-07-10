@@ -1,77 +1,97 @@
 import 'package:galarm/clock/clock.dart';
 import 'package:flutter/material.dart';
+import 'package:galarm/alarm.dart';
+import 'dart:ui';
 
-class FirstTab extends StatelessWidget {
+
+
+class FirstTab extends StatefulWidget {
+
+  @override
+  _FirstTabState createState() => _FirstTabState();
+}
+
+class _FirstTabState extends State<FirstTab> {
+
+
+Future<List<Alarm>> listAlarms() async
+{
+  if (Alarm.getAlarms().length > 0)
+    return Alarm.getAlarms();
+  else
+    return null;
+}
+
+
   @override
   Widget build(BuildContext context) {
     return ListView(
       children: <Widget>[
-        SizedBox(
-          height: 85,
-        ),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 40),
+          padding: EdgeInsets.all(10),
           child: Clock(),
         ),
-        SizedBox(
-          height: 85,
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        Column(
           children: <Widget>[
-
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    "ALARM TIME",
-                    style: TextStyle(
-                      color: Color(0xff00FF00),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.3
-                    ),
-                  ),
-                  SizedBox(height: 10,),
-                  Text(
-                    "06:12 PM",
-                    style: TextStyle(
-                      color: Color(0xff2d386b),
-                      fontSize: 30,
-                      fontWeight: FontWeight.w700
-                    ),
-                  )
-                ],
+            Padding(
+              padding: EdgeInsets.all(5),
+              child: Text(
+              "ALARMS",
+              style: TextStyle(
+                  color: Color(0xff00FF00),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.3
               ),
+          ),
+            ),
+            Container(
+              padding: EdgeInsets.all(10),
+              child: FlatButton(
+                color: Colors.blue,
+                child: Text('Refresh'),
+                onPressed: () {
+                  setState(() {
 
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    "WAKE UP IN",
-                    style: TextStyle(
-                      color: Color(0xff00FF00),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.3
-                    ),
-                  ),
-                  SizedBox(height: 10,),
-                  Text(
-                    "08:00 AM",
-                    style: TextStyle(
-                      color: Color(0xff2d386b),
-                      fontSize: 30,
-                      fontWeight: FontWeight.w700
-                    ),
-                  )
-                ],
+                  });
+                },
               ),
-
-
-          ],
+            ),
+          ]
+        ),
+        FutureBuilder(
+          future: listAlarms(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.data == null)
+              {
+                return Container(
+                  child: Align(alignment: Alignment.center,child: Text('No Alarms set', style: TextStyle(color: Colors.red, fontSize: 18,fontWeight: FontWeight.w800),)),
+                );
+              }
+            else {
+              return ListView.builder(
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: snapshot.data.length,
+                itemBuilder: (BuildContext context, int index){
+                  return ListTile(
+                    title: Text(snapshot.data[index].alarmDescription,style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 5
+                    ),),
+                    subtitle: Text(snapshot.data[index].timeSet.toString(),style: TextStyle(
+                      color: Colors.black54,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1
+                    ),),
+                  );
+                },
+              );
+            }
+          },
         )
       ],
     );
