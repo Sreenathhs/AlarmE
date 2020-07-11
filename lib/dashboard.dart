@@ -229,11 +229,22 @@ class _AppClockState extends State<AppClock> {
                                 padding: EdgeInsets.all(10.0),
                                 child: Align(
                                   alignment: Alignment.centerLeft,
-                                  child: Text(data['user_details']['name']),
+                                  child: Text(data['user_details']['name'], style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 20,
+                                    color: Colors.black
+                                  ),),
                                 ),
                               ),
                               Divider(),
-                              Text(textValue),
+                              Padding(
+                                padding: EdgeInsets.all(10),
+                                  child: Text("USER DETAILS",style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.green
+                                  ),)
+                              ),
                               Expanded(
                                 child: Align(
                                   alignment: Alignment.bottomLeft,
@@ -326,12 +337,17 @@ class _BottomBarState extends State<BottomBar> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
+      padding: EdgeInsets.fromLTRB(20, 10, 20, 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
             FlatButton(
-            child: Icon(Icons.alarm),
+            child: Row(
+              children: <Widget>[
+                Text("Set an ALarm"),
+                Icon(Icons.alarm),
+              ],
+            ),
             color: Color(0xffff5e92),
             textColor: Colors.white,
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
