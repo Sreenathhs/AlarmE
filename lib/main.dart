@@ -113,6 +113,9 @@ class _MyHomePageState extends State<MyHomePage> {
             pswdRedUnderLine = false;
           });
         }
+        setState(() {
+          _loading=false;
+        });
       }
     }
     deviceToken = returnDeviceToken();

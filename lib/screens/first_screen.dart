@@ -28,7 +28,7 @@ Future<List<Alarm>> listAlarms() async
     return ListView(
       children: <Widget>[
         Padding(
-          padding: EdgeInsets.all(10),
+          padding: EdgeInsets.all(55),
           child: Clock(),
         ),
         Column(

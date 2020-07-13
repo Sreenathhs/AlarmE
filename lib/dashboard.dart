@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -64,6 +65,7 @@ class _AppClockState extends State<AppClock> {
   @override
   void initState() {
     AndroidAlarmManager.initialize();
+    fetchAllAlarms();
     firebaseMessaging.configure(onLaunch: (Map<String, dynamic> msg) {
       print("onLaunch");
       return null;
@@ -91,8 +93,24 @@ class _AppClockState extends State<AppClock> {
     setState(() {});
   }
 
-
-
+  void fetchAllAlarms() async {
+    String URL = data['server'];
+    int userID = data['user_details']['id'];
+    Map<String, String> headers = {"Content-type": "application/json"};
+    String json = '{'
+        '"id" : "$userID"'
+        '}';
+    Response response = await post(URL + "/fetchuseralarms",
+        headers: headers, body: json).timeout(const Duration(seconds: 10));
+    print("TEST");
+    List alarm_list= jsonDecode(response.body);
+    for (int i=0;i<alarm_list.length;i++)
+      {
+        DateTime newAlarm = DateTime.parse(alarm_list[i]);
+        print(newAlarm);
+        await AndroidAlarmManager.oneShotAt(newAlarm, helloAlarmID++, _BottomBarState.playLocalAsset,alarmClock: true);
+      }
+  }
 
 
 
@@ -184,7 +202,7 @@ class _AppClockState extends State<AppClock> {
                                       indicator: UnderlineTabIndicator(
                                           borderSide: BorderSide(
                                               color: Color(0xff00FF00),
-                                              width: 4.0),
+                                              width: 4.0,),
                                           insets: EdgeInsets.fromLTRB(
                                               40.0, 20.0, 40.0, 0)),
                                       indicatorWeight: 15,
@@ -221,7 +239,7 @@ class _AppClockState extends State<AppClock> {
                             child: FirstTab(),
                           ),
                           Center(
-                            child: SecondTab(),
+                            child: SecondTab(data),
                           ),
                           Column(
                             children: <Widget>[
@@ -265,7 +283,10 @@ class _AppClockState extends State<AppClock> {
                             ],
                           ),
                         ],
-                      )))),
+                      )
+                  )
+              )
+      ),
     );
   }
 }
@@ -314,10 +335,6 @@ class _BottomBarState extends State<BottomBar> {
     }
   }
 
-
-  void tempoyo() {
-
-  }
 
   static playLocalAsset() {
     ReceivePort rcPort = new ReceivePort();

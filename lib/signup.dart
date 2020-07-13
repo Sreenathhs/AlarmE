@@ -60,10 +60,12 @@ class _SignupPageState extends State<SignupPage> {
         '"Phone": "$phno"'
         '}';
 
-    DBRef.child("url").once().then((DataSnapshot snapshot){
-      URL = snapshot.value['link'];
+    await DBRef.child("url").once().then((DataSnapshot snapshot){
+      print(snapshot.value['link']);
+      this.URL = snapshot.value['link'];
     });
-    Response response = await post(URL + "/register",
+    print(this.URL + "/register");
+    Response response = await post(this.URL + "/register",
         headers: headers, body: json);
     setState(() {
       _loader = false;
