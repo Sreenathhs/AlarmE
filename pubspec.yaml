@@ -24,6 +24,7 @@ dependencies:
   logger: ^0.6.0
   flutter_ringtone_player: ^2.0.0
   android_alarm_manager: ^0.4.5+11
+  flutter_socket_io: ^0.6.0
   flutter_local_notifications:
   flutter:
     sdk: flutter

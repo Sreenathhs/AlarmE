@@ -3,7 +3,8 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_socket_io/flutter_socket_io.dart';
+import 'package:flutter_socket_io/socket_io_manager.dart';
 import 'screens/first_screen.dart';
 import 'screens/second_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -14,6 +15,7 @@ import 'main.dart';
 import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'alarm.dart';
+import 'socketconfig.dart';
 
 // ignore: must_be_immutable
 class Dashboard extends StatefulWidget {
@@ -61,9 +63,18 @@ class _AppClockState extends State<AppClock> {
   bool _loading = false;
   int helloAlarmID = 0;
   FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
+  SocketIO socketIO;
 
   @override
   void initState() {
+    String URL = data['server'];
+    socketIO = SocketIOManager().createSocketIO(URL, "/test");
+
+    //call init socket before doing anything
+    socketIO.init();
+
+    //connect socket
+    socketIO.connect();
     AndroidAlarmManager.initialize();
     fetchAllAlarms();
     firebaseMessaging.configure(onLaunch: (Map<String, dynamic> msg) {
@@ -112,7 +123,26 @@ class _AppClockState extends State<AppClock> {
       }
   }
 
-
+//void fetchAllGroupUserBelongsTo() async {
+//  String URL = data['server'];
+//  int userID = data['user_details']['id'];
+//  Map<String, String> headers = {"Content-type": "application/json"};
+//  String json = '{'
+//      '"id" : "$userID"'
+//      '}';
+//  Response response = await post(URL + "/fetchusergroups",
+//      headers: headers, body: json).timeout(const Duration(seconds: 10));
+//  List group_list = jsonDecode(response.body);
+//  for (int i=0;i<group_list.length;i++)
+//    {
+//      socketIO.subscribe("group_alarm_add_" + group_list[i].id.toString(), addAlarm);
+//    }
+//}
+//
+//void addAlarm(dynamic message) {
+//    var jsonMsg = jsonDecode(message);
+//    AndroidAlarmManager.oneShotAt(jsonMsg['time'], jsonMsg['id'], _BottomBarState.playLocalAsset);
+//}
 
 
 
@@ -196,7 +226,7 @@ class _AppClockState extends State<AppClock> {
                           child: Container(
                             color: Colors.transparent,
                             child: SafeArea(
-                              child: Column(
+                              child: IndexedStack(
                                 children: <Widget>[
                                   TabBar(
                                       indicator: UnderlineTabIndicator(

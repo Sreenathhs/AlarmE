@@ -3,6 +3,7 @@ class Alarm {
   DateTime timeSet;
   String alarmDescription;
   static List<Alarm> alarms = new List();
+  static int alarmIDcount = 0;
 
   static void addAlarm(int id, DateTime setTime, String description)
   {

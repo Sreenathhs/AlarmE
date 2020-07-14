@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ffi';
 import 'package:galarm/groupinfo.dart';
+import 'package:galarm/socketconfig.dart';
 
 
 import 'group_alarm_screen.dart';
@@ -159,6 +160,9 @@ class _SecondTabState extends State<SecondTab> {
                     );
                   }
                 },
+              ),
+              FloatingActionButton(
+                child: Icon(Icons.add),
               )
             ],
           ),

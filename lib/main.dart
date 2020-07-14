@@ -125,6 +125,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _onTimeout(error) {
     retries++;
+    setState(() {
+      _loading = false;
+    });
     if (error is TimeoutException)
       {
         if (retries > 2)
