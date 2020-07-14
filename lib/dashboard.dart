@@ -299,6 +299,36 @@ void addAlarm(dynamic message) async{
                                     color: Colors.green
                                   ),)
                               ),
+                              Padding(
+                                padding: EdgeInsets.all(10),
+                                child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Row(children: <Widget>[
+                                      Text('Email: ',style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 15
+                                      ),),
+                                      Text(data['user_details']['email'],style: TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 15))
+                                    ]
+                                    )
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.all(10),
+                                child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Row(children: <Widget>[
+                                      Text('User ID: ',style: TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 15)),
+                                      Text(data['user_details']['id'].toString(),style: TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 15))
+                                    ] )
+                                ),
+                              ),
                               Expanded(
                                 child: Align(
                                   alignment: Alignment.bottomLeft,
