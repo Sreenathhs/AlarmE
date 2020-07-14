@@ -3,9 +3,9 @@ from flask import jsonify
 from flask import request
 from pyfcm import FCMNotification
 from datetime import datetime
+from flask_apscheduler import APScheduler
+from flask_socketio import SocketIO , emit
 
-import asyncio
-import websockets
 import requests
 import json
 import mysql.connector
@@ -22,19 +22,29 @@ mydb = mysql.connector.connect(
 mycursor = mydb.cursor(buffered=True)
 
 app = Flask(__name__)
+scheduler = APScheduler()
+socketio = SocketIO(app)
 
-@app.route('/', methods=['GET'])
-# def hello_world():
-#     push_service = FCMNotification(
-#         api_key="AAAAIOlLZ2E:APA91bH3xaxOKS2Gl6EoGTcJZhV0trsaXiaO1cFpPeDYFk_gSwU_gsPn5x5YAt55pdijbm-SYtNxIjYgdZ3-5Rjxqgko1QX-3z6XWTb0GM3v9wshyjiCGy1CBIPi3d-JUihiekwOz3_g")
-#     registration_ids = [
-#         "ehP25Xs0pfM:APA91bGAnJwSHz3p_1ki5u11uFqmVBnenfPmfahmwGsW5tyfXuwERohU6TZibhWhmOELBgzNxEk7FvWc2AeIvau9gWYeTIZUGP4VDeX8bu3HK-tduy9eVPRttUZDscIflneYUKA_kpb0",
-#         "ffukl3IDClQ:APA91bFXfG27GySxazLOSHHfQ0MNGcvYZJYqnZfxUItSR7g9eogx27ygr5NofzXCknla-kIPGy9lkVtjejxZmdGIqfrlG_TgX0g3rqm-ROIgFk9C1Zec2mK-IfrCojsAuZLtnFSHbE1c"]
-#     message_title = "BSRHSR"
-#     message_body = "Hfdhdhghforget to check today's news"
-#     result = push_service.notify_multiple_devices(registration_ids=registration_ids, message_title=message_title,
-#                                                   message_body=message_body)
-#     print(result)
+# @app.route('/')
+# def index():
+#     return render_template('index.html')
+
+@socketio.on('my_event', namespace='/test')
+def test_message(message):
+    emit('my_response', {'data': message['data']})
+
+@socketio.on('my_broadcast_event', namespace='/test')
+def test_message(message):
+    print(message)
+
+@socketio.on('connect', namespace='/test')
+def test_connect():
+    print('Client connected')
+    emit('my_response', {'data': 'Connected'})
+
+@socketio.on('disconnect', namespace='/test')
+def test_disconnect():
+    print('Client disconnected')
 
 @app.route('/register', methods=['POST'])
 def register_user():
@@ -112,6 +122,8 @@ def logout_user():
 def get_session():
     req_data = request.get_json()
     Token = req_data['Token']
+    print("OK")
+    print(Token)
     sql = "SELECT Email,Password,Name,ID from users where DeviceID=%s"
     values = [Token]
     mycursor.execute(sql,values)
@@ -203,19 +215,63 @@ def fetch_groupalarms():
     print(alarms)
     return  jsonify(alarms)
 
-async def hello(websocket, path):
-    name = await websocket.recv()
-    print(f"< {name}")
 
-    greeting = f"Hello {name}!"
+@socketio.on('add_alarm_event', namespace='/test')
+def add_groupalarm(params):
+    print(params)
+    groupID = params['groupID']
+    alarmtime = params['alarmTime']
+    description = params['description']
 
-    await websocket.send(greeting)
-    print(f"> {greeting}")
+    sql = "INSERT INTO alarms(group_id, timeset, description) VALUES (%s,%s,%s)"
+    values = [groupID,alarmtime,description]
+    mycursor.execute(sql,values)
+    mydb.commit()
+    emit("group_" + str(groupID), "Update_Group",broadcast=True)
+    emit("group_alarm_add_" + str(groupID), {'time' : alarmtime, 'id' : mycursor.lastrowid},broadcast=True)
+    return {'success': True}
+
+@app.route('/fetchusergroups', methods=['POST'])
+def fetch_user_groups():
+    req_data = request.get_json()
+    userID = req_data['id']
+    group_ids = []
+    sql = "SELECT group_id from group_members where user_id=%s"
+    values = [userID]
+    mycursor.execute(sql, values)
+    result = mycursor.fetchall()
+    for record in result:
+        group = {}
+        group['id'] = record[0]
+        group_ids.append(group)
+    print(group_ids)
+    return  jsonify(group_ids)
+
+@scheduler.task('cron', id='do_job_2', minute='0/1')
+def job2():
+    sql = "SELECT id,group_id from alarms where timeset < %s"
+    now = datetime.now()
+    values = [str(now.year) + '-' + str(now.strftime("%m")) + '-' + str(now.strftime("%d")) + ' ' + str(now.strftime("%H")) + ':' + str(now.strftime("%M")) + ':00']
+    mycursor.execute(sql,values)
+    result = mycursor.fetchall()
+    for record in result:
+        sql = "DELETE from alarms where id=%s"
+        values = [record[0]]
+        mycursor.execute(sql,values)
+        mydb.commit()
+        print("ME YAHA HU")
+        print(str(record[1]))
+        requests.get('http://localhost:5000/randomcheez?groupid=' + str(record[1]))
+    print("Job is done. Bodies have been taken care of")
+
+@app.route('/randomcheez', methods=['GET'])
+def job1():
+    print(request.args['groupid'])
+    socketio.emit("group_" + str(request.args['groupid']), "Update_Group", broadcast=True,namespace='/test')
+    return {'success': True}
 
 
 if __name__ == "__main__":
-    # app.run(debug=True)
-    start_server = websockets.serve(hello, "localhost", 5001)
-
-    asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.get_event_loop().run_forever()
+    scheduler.init_app(app)
+    scheduler.start()
+    socketio.run(app,debug=True,use_reloader=False)

@@ -103,8 +103,10 @@ class _GroupAlarmState extends State<GroupAlarm> {
         await post(URL + "/fetchgroupalarms", headers: headers, body: json)
             .timeout(const Duration(seconds: 5));
     List alarms_info = jsonDecode(response.body);
-    print(alarms_info[0]['description']);
-    return alarms_info;
+    if (alarms_info.length >  0)
+      return alarms_info;
+    else
+      return null;
   }
 
   @override
@@ -123,6 +125,7 @@ class _GroupAlarmState extends State<GroupAlarm> {
             future: _fillAlarms(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               if (snapshot.data == null) {
+                print(snapshot.data);
                 return Stack(
                   children: <Widget>[
                     Align(
@@ -137,6 +140,7 @@ class _GroupAlarmState extends State<GroupAlarm> {
                   ]
                 );
               } else {
+                print(snapshot.data);
                 return ListView.builder(
                   physics: NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
