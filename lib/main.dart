@@ -50,10 +50,10 @@ class _MyHomePageState extends State<MyHomePage> {
   bool pswdRedUnderLine = false;
   bool _loading = true;
 
-  String returnDeviceToken() {
+  Future<String> returnDeviceToken() async{
     FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
     String deviceToken = "";
-    firebaseMessaging.getToken().then((token){
+    await firebaseMessaging.getToken().then((token){
       deviceToken = token;
     });
     return deviceToken;
@@ -118,7 +118,8 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     }
-    deviceToken = returnDeviceToken();
+    deviceToken = await returnDeviceToken();
+    print("NOT FROM SESSION");
     print(deviceToken);
     update(deviceToken);
   }
@@ -164,8 +165,10 @@ class _MyHomePageState extends State<MyHomePage> {
   void _getSession() async {
 
     print(this.URL + '/getsession');
-    String deviceToken = returnDeviceToken();
+    String deviceToken = await returnDeviceToken();
     Map<String, String> headers = {"Content-type": "application/json"};
+    print("THIS IS FROM GET SESSION BRO");
+    print(deviceToken);
     String json ='{'
         '"Token" : "$deviceToken"'
         '}';

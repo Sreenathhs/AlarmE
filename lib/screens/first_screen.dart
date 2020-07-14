@@ -33,28 +33,35 @@ Future<List<Alarm>> listAlarms() async
         ),
         Column(
           children: <Widget>[
-            Padding(
-              padding: EdgeInsets.all(5),
-              child: Text(
-              "ALARMS",
-              style: TextStyle(
-                  color: Color(0xff00FF00),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.3
-              ),
-          ),
-            ),
-            Container(
-              padding: EdgeInsets.all(10),
-              child: FlatButton(
-                color: Colors.blue,
-                child: Text('Refresh'),
-                onPressed: () {
-                  setState(() {
 
-                  });
-                },
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.blue,
+                  style: BorderStyle.solid,
+                  width: 1.4
+                ),
+                borderRadius: BorderRadius.circular(20)
+              ),
+              padding: EdgeInsets.all(10),
+              width: 200,
+              height: 50,
+              child: Material(
+                shadowColor: Colors.blue,
+                child: FlatButton(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text('Refresh',style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 12
+                  ),),
+                  onPressed: () {
+                    setState(() {
+
+                    });
+                  },
+                ),
               ),
             ),
           ]
@@ -65,7 +72,7 @@ Future<List<Alarm>> listAlarms() async
             if (snapshot.data == null)
               {
                 return Container(
-                  child: Align(alignment: Alignment.center,child: Text('No Alarms set', style: TextStyle(color: Colors.red, fontSize: 18,fontWeight: FontWeight.w800),)),
+                  child: Align(alignment: Alignment.center,child: Text('No Alarms set', style: TextStyle(color: Colors.black, fontSize: 18,fontWeight: FontWeight.w800),)),
                 );
               }
             else {

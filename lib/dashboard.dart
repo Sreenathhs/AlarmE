@@ -77,6 +77,7 @@ class _AppClockState extends State<AppClock> {
     socketIO.connect();
     AndroidAlarmManager.initialize();
     fetchAllAlarms();
+    fetchAllGroupUserBelongsTo();
     firebaseMessaging.configure(onLaunch: (Map<String, dynamic> msg) {
       print("onLaunch");
       return null;
@@ -123,26 +124,31 @@ class _AppClockState extends State<AppClock> {
       }
   }
 
-//void fetchAllGroupUserBelongsTo() async {
-//  String URL = data['server'];
-//  int userID = data['user_details']['id'];
-//  Map<String, String> headers = {"Content-type": "application/json"};
-//  String json = '{'
-//      '"id" : "$userID"'
-//      '}';
-//  Response response = await post(URL + "/fetchusergroups",
-//      headers: headers, body: json).timeout(const Duration(seconds: 10));
-//  List group_list = jsonDecode(response.body);
-//  for (int i=0;i<group_list.length;i++)
-//    {
-//      socketIO.subscribe("group_alarm_add_" + group_list[i].id.toString(), addAlarm);
-//    }
-//}
-//
-//void addAlarm(dynamic message) {
-//    var jsonMsg = jsonDecode(message);
-//    AndroidAlarmManager.oneShotAt(jsonMsg['time'], jsonMsg['id'], _BottomBarState.playLocalAsset);
-//}
+void fetchAllGroupUserBelongsTo() async {
+  String URL = data['server'];
+  int userID = data['user_details']['id'];
+  Map<String, String> headers = {"Content-type": "application/json"};
+  String json = '{'
+      '"id" : "$userID"'
+      '}';
+  Response response = await post(URL + "/fetchusergroups",
+      headers: headers, body: json).timeout(const Duration(seconds: 10));
+  List group_list = jsonDecode(response.body);
+  for (int i=0;i<group_list.length;i++)
+    {
+      print(group_list[i].toString());
+      socketIO.subscribe("group_alarm_add_" + group_list[i]['id'].toString(), addAlarm);
+    }
+}
+
+void addAlarm(dynamic message) async{
+
+    var jsonMsg = jsonDecode(message);
+    print("Abhijeet is noob");
+    print(jsonMsg);
+    DateTime newAlarm = DateTime.parse(jsonMsg['time']);
+    await AndroidAlarmManager.oneShotAt(newAlarm, jsonMsg['id'], _BottomBarState.playLocalAsset,alarmClock: true);
+}
 
 
 
@@ -395,8 +401,7 @@ class _BottomBarState extends State<BottomBar> {
                 Icon(Icons.alarm),
               ],
             ),
-            color: Color(0xffff5e92),
-            textColor: Colors.white,
+            textColor: Colors.green,
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(50),
@@ -406,9 +411,11 @@ class _BottomBarState extends State<BottomBar> {
             },
           ),
           FlatButton(
-            child: Text('Stop'),
-            color: Colors.red,
-            textColor: Colors.white,
+            child: Text('Stop',style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+            ),),
+            textColor: Colors.red,
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(50),
